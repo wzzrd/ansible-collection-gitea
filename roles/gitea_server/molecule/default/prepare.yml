@@ -1,0 +1,10 @@
+- name: Prepare containers for molecule tests
+  hosts: molecule
+  gather_facts: false
+  tasks:
+    - name: Install sudo for become during tests
+      ansible.builtin.package:
+        name: sudo
+        state: present
+
+

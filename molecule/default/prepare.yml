@@ -1,0 +1,21 @@
+- name: Prepare servers for molecule tests
+  hosts: servers:runners
+  gather_facts: false
+  tasks:
+    - name: Install sudo for during tests
+      ansible.builtin.package:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - sudo
+
+- name: Prepare servers for molecule tests
+  hosts: runners
+  gather_facts: false
+  tasks:
+    - name: Install xz for during tests
+      ansible.builtin.package:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - xz

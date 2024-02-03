@@ -1,0 +1,18 @@
+[Unit]
+Description=Gitea act_runner daemon
+After=network.target
+Requires=network-online.target
+StartLimitIntervalSec=60
+
+[Service]
+User={{ act_runner_user }}
+Group={{ act_runner_group }}
+Environment=HOME={{ act_runner_dir }}
+WorkingDirectory={{ act_runner_dir }}
+Type=simple
+ExecStart={{ act_runner_bin_dir }}/act_runner daemon -c {{ act_runner_dir}}/config.yaml
+Restart=on-failure
+StartLimitBurst=3
+
+[Install]
+WantedBy=multi-user.target

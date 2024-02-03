@@ -1,0 +1,9 @@
+---
+- name: "Restart act_runner"
+  ansible.builtin.service:
+    name: act_runner
+    state: restarted
+
+- name: "Reload systemd"
+  ansible.builtin.systemd:
+    daemon_reload: true

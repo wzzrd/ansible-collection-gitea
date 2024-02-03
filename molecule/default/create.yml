@@ -1,0 +1,23 @@
+- name: Create
+  hosts: localhost
+  gather_facts: false
+
+  tasks:
+    - name: Create a container
+      containers.podman.podman_container:
+        name: "{{ item.name }}"
+        image: "{{ item.image }}"
+        state: started
+        log_driver: json-file
+      register: result
+      loop: "{{ molecule_yml.platforms }}"
+
+    - name: Fail if container is not running
+      when: >
+        item.container.State.ExitCode != 0 or
+        not item.container.State.Running
+      ansible.builtin.include_tasks:
+        file: tasks/create-fail.yml
+      loop: "{{ result.results }}"
+      loop_control:
+        label: "{{ item.container.Name }}"

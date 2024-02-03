@@ -1,0 +1,73 @@
+- name: Verify
+  hosts: runners
+  gather_facts: false
+
+  tasks:
+    - name: check if act_runner binary exists
+      block:
+        - name: check for existence for /usr/local/bin/act_runner
+          ansible.builtin.stat:
+            path: /usr/local/bin/act_runner
+          register: act_runner_stat_result
+
+        - name: verify result of previous task
+          ansible.builtin.assert:
+            that:
+              - act_runner_stat_result.stat.exists
+
+
+    - name: check if gitea configfile exists
+      block:
+        - name: check for existence of /home/builder/config.yaml
+          ansible.builtin.stat:
+            path: "/home/act_runner/config.yaml"
+          register: act_runner_config_stat_result
+
+        - name: verify result of previous task
+          ansible.builtin.assert:
+            that:
+              - act_runner_config_stat_result.stat.exists
+              - act_runner_config_stat_result.stat.size > 1000
+
+- name: Verify servers
+  hosts: servers
+  gather_facts: false
+
+  tasks:
+    - name: check if git is installed
+      block:
+        - name: check for install status of git package
+          ansible.builtin.package:
+            name: git
+            state: installed
+          register: git_package_status
+
+        - name: verify result of previous task
+          ansible.builtin.assert:
+            that:
+              - not git_package_status.changed
+
+    - name: check if gitea binary exists
+      block:
+        - name: check for existence for /usr/local/bin/gitea
+          ansible.builtin.stat:
+            path: /usr/local/bin/gitea
+          register: gitea_stat_result
+
+        - name: verify result of previous task
+          ansible.builtin.assert:
+            that:
+              - gitea_stat_result.stat.exists
+
+
+    - name: check if gitea configfile exists
+      block:
+        - name: check for existence of /etc/gitea/gitea.ini
+          ansible.builtin.stat:
+            path: /etc/gitea/gitea.ini
+          register: gitea_config_stat_result
+
+        - name: verify result of previous task
+          ansible.builtin.assert:
+            that:
+              - gitea_config_stat_result.stat.exists

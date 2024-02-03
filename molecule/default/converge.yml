@@ -1,0 +1,56 @@
+- name: Fail if runner or server groups are missing
+  hosts: localhost
+  tasks:
+    - name: Assert group existence
+      ansible.builtin.assert:
+        that: 
+          - "'runners' in groups"
+          - "'servers' in groups"
+        fail_msg: |
+          runners or servers group was not found inside inventory groups: {{ groups }}
+
+- name: Converge servers
+  hosts: servers
+  gather_facts: true
+  vars:
+    gitea_arch: arm64
+    gitea_db_type: sqlite3
+  pre_tasks:
+ #  - name: Gather required subset of facts
+ #    ansible.builtin.setup:
+ #      gather_subset:
+ #        - '!all'
+ #        - default_ipv4
+
+    - name: debug
+      ansible.builtin.debug:
+        msg: "{{ ansible_facts }}"
+
+  roles:
+    - role: gitea_server
+      vars:
+        gitea_http_listen: "{{ all_ipv4_addresses[0] }}"
+
+- name: Converge
+  hosts: runners
+  # We disable gather facts because it would fail due to our container not
+  # having python installed. This will not prevent use from running 'raw'
+  # commands. Most molecule users are expected to use containers that already
+  # have python installed in order to avoid notable delays installing it.
+  gather_facts: false
+  vars:
+    gitea_server: "{{ inventory_hostname|split('_')|first }}_server"
+    gitea_server_become_user: gitea
+    gitea_server_bin: /usr/local/bin/gitea
+    gitea_server_config_path: /etc/gitea/gitea.ini
+    act_runner_do_register: true
+    debug: true
+  pre_tasks:
+    - name: Gather required subset of facts
+      ansible.builtin.setup:
+        gather_subset:
+          - '!all'
+  roles:
+    - role: act_runner
+
+

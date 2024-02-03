@@ -1,0 +1,28 @@
+## general
+
+container as root (priv)? why the fuck?
+binary as non priv user
+
+internal vs external gitea server? no, not needed
+
+name for registration; default to fqdn? or allow suffix?
+
+labels for reg
+work with list of dicts (label,image), what to do with only label, no image?
+  prob easier to make a list of label:images, like
+  - label1:image1
+  - label2:image2
+    and then join them with commas
+
+## for podman:
+why does this run as root?
+
+network setting -> configurable, but default to network => bridge?
+  not for act_runner container, but containers that are spawned as workers
+
+volume mounts for containers?
+  podman socket
+  config file
+  data? -> only contains .runner? (so needs to be on volume, otherwise volatile)
+
+privileged mode configurable?
