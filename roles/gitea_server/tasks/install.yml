@@ -38,9 +38,7 @@
         cmd: "gitea dump -c /etc/gitea/gitea.ini"
         chdir: /var/backups/
       become: true
-      become_method: ansible.builtin.su
       become_user: "{{ gitea_user }}"
-      become_flags: "-s /bin/sh"
       changed_when: true
 
 - name: Downloading and installing gitea binary
