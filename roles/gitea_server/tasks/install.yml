@@ -37,9 +37,6 @@
       ansible.builtin.include_tasks: backup.yml
       tags: backup
       when:
-        - ansible_facts.services["gitea.service"] is defined
-        - ansible_facts.services["gitea.service"].state == "running"
-        - gitea_active_version.stdout != gitea_version
         - gitea_server_do_backup
 
 - name: Downloading and installing gitea binary
