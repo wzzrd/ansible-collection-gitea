@@ -1,5 +1,5 @@
 - name: Verify
-  hosts: molecule
+  hosts: all
   # We disable gather facts because it would fail due to our container not
   # having python installed. This will not prevent use from running 'raw'
   # commands. Most molecule users are expected to use containers that already

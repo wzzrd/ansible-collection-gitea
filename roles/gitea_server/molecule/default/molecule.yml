@@ -5,30 +5,24 @@ dependency:
     requirements-file: requirements.yml
 platforms:
   - name: ubi8
-    image: ubi8/ubi-init
+    image: registry.access.redhat.com/ubi8/ubi-init
+    pre_built_image: true
+    cgroupns_mode: host
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:rw
-    tmpfs:
-      - /run
-      - /tmp
     privileged: true
-    command: "/sbin/init --system"
+    command: "/usr/sbin/init"
+    platform: linux/amd64
   - name: ubi9
-    image: ubi9/ubi-init
+    image: registry.access.redhat.com/ubi9/ubi-init
+    pre_built_image: true
+    cgroupns_mode: host
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:rw
-    tmpfs:
-      - /run
-      - /tmp
     privileged: true
-    command: "/sbin/init --system"
+    command: "/usr/sbin/init"
+    platform: linux/amd64
 provisioner:
   name: ansible
 verifier:
   name: ansible
-driver:
-  options:
-    managed: False
-    login_cmd_template: "podman exec -ti {instance} bash"
-    ansible_connection_options:
-      ansible_connection: podman

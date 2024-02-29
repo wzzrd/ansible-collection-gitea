@@ -1,0 +1,24 @@
+---
+- name: Get service facts
+  ansible.builtin.service_facts:
+
+- name: Stopping gitea before upgrade
+  ansible.builtin.service:
+    name: gitea
+    state: stopped
+
+- name: "Create backup directory"
+  ansible.builtin.file:
+    path: "{{ gitea_server_backup_location }}"
+    state: directory
+    owner: "{{ gitea_user }}"
+    group: "{{ gitea_group }}"
+    mode: 'u=rwx,g=rx,o='
+
+- name: Backing up gitea before upgrade
+  ansible.builtin.command:
+    cmd: "/usr/local/bin/gitea dump -c /etc/gitea/gitea.ini"
+    chdir: "{{ gitea_server_backup_location }}"
+  become: true
+  become_user: "{{ gitea_user }}"
+  changed_when: true
