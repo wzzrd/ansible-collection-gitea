@@ -1,0 +1,35 @@
+- name: Converge gitea server on 1.21.5
+  hosts: all
+  gather_facts: false
+  vars:
+    gitea_arch: arm64
+    gitea_db_type: sqlite3
+    gitea_version: "1.21.5"
+    gitea_server_do_backup: true
+  pre_tasks:
+    - name: Gather required subset of facts
+      ansible.builtin.setup:
+        gather_subset:
+          - '!all'
+          - default_ipv4
+
+  roles:
+    - role: gitea_server
+
+- name: Converge gitea server on 1.21.7
+  hosts: all
+  gather_facts: false
+  vars:
+    gitea_arch: arm64
+    gitea_db_type: sqlite3
+    gitea_version: "1.21.7"
+    gitea_server_do_backup: true
+  pre_tasks:
+    - name: Gather required subset of facts
+      ansible.builtin.setup:
+        gather_subset:
+          - '!all'
+          - default_ipv4
+
+  roles:
+    - role: gitea_server

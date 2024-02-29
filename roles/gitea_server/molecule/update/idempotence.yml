@@ -1,0 +1,21 @@
+- name: Converge gitea server on 1.21.7
+  hosts: all
+  # We disable gather facts because it would fail due to our container not
+  # having python installed. This will not prevent use from running 'raw'
+  # commands. Most molecule users are expected to use containers that already
+  # have python installed in order to avoid notable delays installing it.
+  gather_facts: false
+  vars:
+    gitea_arch: arm64
+    gitea_db_type: sqlite3
+    gitea_version: 1.21.7
+    gitea_server_do_backup: true
+  pre_tasks:
+    - name: Gather required subset of facts
+      ansible.builtin.setup:
+        gather_subset:
+          - '!all'
+          - default_ipv4
+
+  roles:
+    - role: gitea_server
