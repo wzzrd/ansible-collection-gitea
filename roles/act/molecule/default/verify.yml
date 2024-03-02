@@ -1,0 +1,34 @@
+- name: Verify
+  hosts: molecule
+  # We disable gather facts because it would fail due to our container not
+  # having python installed. This will not prevent use from running 'raw'
+  # commands. Most molecule users are expected to use containers that already
+  # have python installed in order to avoid notable delays installing it.
+  gather_facts: false
+
+  tasks:
+    - name: Check if act_runner binary exists
+      block:
+        - name: Check for existence for /usr/local/bin/act_runner
+          ansible.builtin.stat:
+            path: /usr/local/bin/act_runner
+          register: act_runner_stat_result
+
+        - name: Verify result of previous task
+          ansible.builtin.assert:
+            that:
+              - act_runner_stat_result.stat.exists
+
+
+    - name: Check if gitea configfile exists
+      block:
+        - name: Check for existence of /home/builder/config.yaml
+          ansible.builtin.stat:
+            path: "/home/act_runner/config.yaml"
+          register: act_runner_config_stat_result
+
+        - name: Verify result of previous task
+          ansible.builtin.assert:
+            that:
+              - act_runner_config_stat_result.stat.exists
+              - act_runner_config_stat_result.stat.size > 1000

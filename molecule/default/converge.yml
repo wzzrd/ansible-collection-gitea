@@ -3,7 +3,7 @@
   tasks:
     - name: Assert group existence
       ansible.builtin.assert:
-        that: 
+        that:
           - "'runners' in groups"
           - "'servers' in groups"
         fail_msg: |
@@ -16,18 +16,18 @@
     gitea_arch: arm64
     gitea_db_type: sqlite3
   pre_tasks:
- #  - name: Gather required subset of facts
- #    ansible.builtin.setup:
- #      gather_subset:
- #        - '!all'
- #        - default_ipv4
+    - name: Gather required subset of facts
+      ansible.builtin.setup:
+        gather_subset:
+          - '!all'
+          - default_ipv4
 
-    - name: debug
+    - name: Debug output
       ansible.builtin.debug:
         msg: "{{ ansible_facts }}"
 
   roles:
-    - role: gitea_server
+    - role: gitea
       vars:
         gitea_http_listen: "{{ all_ipv4_addresses[0] }}"
 
@@ -51,6 +51,4 @@
         gather_subset:
           - '!all'
   roles:
-    - role: act_runner
-
-
+    - role: act

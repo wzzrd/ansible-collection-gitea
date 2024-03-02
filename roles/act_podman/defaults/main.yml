@@ -1,0 +1,21 @@
+---
+act_podman_install_dependencies: true
+act_podman_user: act_runner
+act_podman_user_group: act_runner
+act_podman_user_additional_groups: ''
+act_podman_dir: /home/{{ act_runner_user }}
+
+act_podman_bin_dir: /usr/local/bin
+act_podman_bin_owner: root
+act_podman_bin_owner_group: root
+
+act_podman_version: "0.2.6"
+act_podman_download_dir_url: "https://dl.gitea.com/act_runner/{{ act_runner_version }}"
+
+act_podman_gitea_config_path: /etc/gitea/gitea.ini
+act_podman_do_register: true
+# act_runner_scope:
+
+act_podman_gitea_host: gitea.example.com
+act_podman_gitea_become_user: root
+act_podman_gitea_bin: /usr/local/bin/gitea

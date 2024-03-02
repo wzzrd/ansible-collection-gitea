@@ -1,0 +1,11 @@
+---
+# file: act_runner_playbook.yml
+- name: Test act playbook
+  hosts: localhost
+  gather_facts: true
+
+  tasks:
+    - name: Testing act role
+      ansible.builtin.include_role:
+        name: wzzrd.gitea.act
+        tasks_from: main.yml

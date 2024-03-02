@@ -1,0 +1,253 @@
+---
+- name: Ensure installation of podman-docker
+  ansible.builtin.dnf:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - podman-docker
+  when: act_install_dependencies is true
+
+- name: Add group for act user
+  ansible.builtin.group:
+    name: "{{ act_user_group }}"
+
+- name: Add user for act
+  ansible.builtin.user:
+    name: "{{ act_user }}"
+    group: "{{ act_user_group }}"
+    groups: "{{ act_user_additional_groups | default('') }}"
+    home: "{{ act_user_home }}"
+    create_home: true
+
+- name: Check if act is installed already
+  ansible.builtin.stat:
+    path: "{{ act_bin_dir }}/act_runner"
+  register: act_stat
+
+- name: Check if act is already installed and get version if so
+  when: act_stat.stat.exists
+  tags:
+    - version
+  block:
+    - name: Get version of currently installed act_runner
+      ansible.builtin.command:
+        argv:
+          - "{{ act_bin_dir }}/act_runner"
+          - -v
+      register: version_output
+      changed_when: false
+
+    - name: Store detected version of later
+      ansible.builtin.set_fact:
+        detected_version: "{{ version_output.stdout | split | last }}"
+
+    - name: Show values
+      ansible.builtin.debug:
+        msg: "{{ detected_version }}"
+      when:
+        - debug is defined
+        - debug
+
+- name: Download and install new binary, if needed
+  when: (detected_version is not defined) or
+        (act_version != detected_version[1:])
+  tags:
+    - version
+  block:
+    - name: Get system architecture in supported format - amd64
+      ansible.builtin.set_fact:
+        act_architecture: amd64
+        act_artifact: "act_runner-{{ act_version }}-linux-amd64.xz"
+      when: ansible_architecture == "x86_64"
+
+    - name: Get system architecture in supported format - arm64
+      ansible.builtin.set_fact:
+        act_architecture: arm64
+        act_artifact: "act_runner-{{ act_version }}-linux-arm64.xz"
+      when: ansible_architecture == "aarch64"
+
+    - name: Show artifact
+      ansible.builtin.debug:
+        msg: "{{ act_artifact }}"
+      when:
+        - debug is defined
+        - debug
+
+    - name: Download checksum file
+      ansible.builtin.get_url:
+        url: "{{ act_download_dir_url }}/checksums.txt"
+        dest: "{{ act_user_home }}/checksums.txt"
+        owner: "{{ act_user }}"
+        mode: "0640"
+
+    - name: Get checksum for release from file
+      block:
+        - name: Read checksum file
+          ansible.builtin.slurp:
+            src: "{{ act_user_home }}/checksums.txt"
+          register: checksums
+
+        - name: Select relevant checksum from file
+          ansible.builtin.set_fact:
+            act_checksum: |
+              "{{ checksums['content'] | b64decode | regex_search('.*' + act_artifact) | split | first }}"
+
+        - name: Show value
+          ansible.builtin.debug:
+            msg: "{{ act_checksum }}"
+          when:
+            - debug is defined
+            - debug
+
+    - name: Download requested release
+      ansible.builtin.get_url:
+        url: "{{ act_download_dir_url }}/{{ act_artifact }}"
+        dest: "{{ act_user_home }}/{{ act_artifact }}"
+        checksum: sha256:{{ act_checksum }}
+        owner: "{{ act_user }}"
+        mode: "0750"
+
+    - name: Unarchive release
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/unxz
+          - -d
+          - -f
+          - "{{ act_user_home }}/{{ act_artifact }}"
+        creates: "{{ act_user_home }}/{{ act_artifact[:-3] }}"
+
+    - name: "Copy file to {{ act_bin_dir }}"
+      ansible.builtin.copy:
+        src: "{{ act_user_home }}/{{ act_artifact[:-3] }}"
+        dest: "{{ act_bin_dir }}/{{ act_artifact[:-3] }}"
+        mode: "0755"
+        owner: "{{ act_bin_owner }}"
+        group: "{{ act_bin_owner_group }}"
+        remote_src: true
+
+    - name: Create current symlink
+      ansible.builtin.file:
+        src: "{{ act_bin_dir }}/{{ act_artifact[:-3] }}"
+        dest: "{{ act_bin_dir }}/act_runner"
+        state: "link"
+
+- name: Generate default act config file contents if it doesn't exist
+  ansible.builtin.command:
+    chdir: "{{ act_user_home }}"
+    creates: "{{ act_user_home }}/config.yaml"
+    argv:
+      - "{{ act_bin_dir }}/act_runner"
+      - generate-config
+  register: act_config_content
+  when:
+    - act_config_content is not defined
+
+- name: Flatten act_config_content
+  ansible.builtin.set_fact:
+    act_config_content: "{{ act_config_content.stdout }}"
+  when: act_config_content.stdout is defined
+
+- name: Generate act config file with specific contents
+  ansible.builtin.copy:
+    dest: "{{ act_user_home }}/config.yaml"
+    mode: "0640"
+    owner: "{{ act_user }}"
+    group: "{{ act_user_group }}"
+    content: "{{ act_config_content }}"
+  when:
+    - act_config_content is defined
+    - '"skipped" not in act_config_content'
+
+- name: Register runner with gitea server
+  when: act_do_register
+  block:
+    - name: Preflight checks for act registration
+      ansible.builtin.assert:
+        that:
+          - gitea_server is defined
+          - gitea_server_become_user is defined
+          - gitea_server_bin is defined
+          - gitea_server_config_path is defined
+
+    - name: Obtain registration token with project and / or owner scope
+      ansible.builtin.command:
+        argv:
+          - "{{ gitea_server_bin }}"
+          - actions
+          - generate-runner-token
+          - --config
+          - "{{ gitea_server_config_path }}"
+          - --scope
+          - "{{ act_scope }}"
+      register: act_registration_token
+      when: act_scope|length > 0
+      changed_when: false
+      delegate_to: "{{ gitea_server }}"
+      become: true
+      become_user: "{{ gitea_server_become_user }}"
+
+    - name: Obtain global registration token (without project and / or owner scope)
+      ansible.builtin.command:
+        argv:
+          - "{{ gitea_server_bin }}"
+          - actions
+          - generate-runner-token
+          - --config
+          - "{{ gitea_server_config_path }}"
+      register: act_registration_token
+      when: act_scope|length == 0
+      changed_when: false
+      delegate_to: "{{ gitea_server }}"
+      become: true
+      become_user: "{{ gitea_server_become_user }}"
+
+    # Should no longer be a problem with gitea 1.23 or so
+    - name: Work around DISABLE_QUERY_AUTH_TOKEN bug
+      block:
+        - name: Select stdout as token if DISABLE_QUERY_AUTH_TOKEN is not a problem
+          ansible.builtin.set_fact:
+            act_registration_token: "{{ act_registration_token.stdout }}"
+          when: "'DISABLE_QUERY_AUTH_TOKEN' not in act_registration_token.stdout"
+
+        - name: Select stdout_lines[1] if DISABLE_QUERY_AUTH_TOKEN is a problem
+          ansible.builtin.set_fact:
+            act_registration_token: "{{ act_registration_token.stdout_lines[1] }}"
+          when:
+            - act_registration_token.stdout is defined
+            - "'DISABLE_QUERY_AUTH_TOKEN' in act_registration_token.stdout"
+
+    - name: Show registration token
+      ansible.builtin.debug:
+        msg: "{{ act_registration_token }}"
+      when:
+        - debug is defined
+        - debug
+
+    - name: Fail if no registration token was acquired
+      ansible.builtin.fail:
+        msg: "Failure: no registration token was acquired successfully."
+      when: (act_registration_token | length) != 40
+
+    - name: Register runner
+      ansible.builtin.command:
+        chdir: "{{ act_user_home }}"
+        creates: "{{ act_user_home }}/.runner"
+        argv:
+          - "{{ act_bin_dir }}/act_runner"
+          - register
+          - --instance
+          - "{{ gitea_server }}"
+          - --token
+          - "{{ act_registration_token }}"
+          - --no-interactive
+      become: true
+      become_user: "{{ act_user }}"
+
+- name: Deploy systemd service file
+  ansible.builtin.template:
+    src: "act_runner.service.j2"
+    dest: "/etc/systemd/system/act_runner.service"
+    mode: "0644"
+  notify:
+    - Reload systemd
+    - Restart act_runner

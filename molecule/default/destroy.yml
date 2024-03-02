@@ -13,4 +13,3 @@
       ansible.builtin.command:
         cmd: podman container rm --ignore {{ inventory_hostname }}
       changed_when: false
-
