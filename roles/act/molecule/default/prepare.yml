@@ -1,5 +1,5 @@
 - name: Prepare containers for molecule tests
-  hosts: molecule
+  hosts: all
   gather_facts: false
   tasks:
     - name: Install xz for during tests

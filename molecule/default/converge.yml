@@ -13,7 +13,6 @@
   hosts: servers
   gather_facts: true
   vars:
-    gitea_arch: arm64
     gitea_db_type: sqlite3
   pre_tasks:
     - name: Gather required subset of facts
@@ -22,14 +21,10 @@
           - '!all'
           - default_ipv4
 
-    - name: Debug output
-      ansible.builtin.debug:
-        msg: "{{ ansible_facts }}"
-
   roles:
     - role: gitea
       vars:
-        gitea_http_listen: "{{ all_ipv4_addresses[0] }}"
+        gitea_http_listen: "{{ ansible_facts.all_ipv4_addresses[0] }}"
 
 - name: Converge
   hosts: runners
@@ -39,11 +34,13 @@
   # have python installed in order to avoid notable delays installing it.
   gather_facts: false
   vars:
-    gitea_server: "{{ inventory_hostname|split('_')|first }}_server"
-    gitea_server_become_user: gitea
-    gitea_server_bin: /usr/local/bin/gitea
-    gitea_server_config_path: /etc/gitea/gitea.ini
-    act_runner_do_register: true
+    act_gitea_host: "{{ inventory_hostname|split('_')|first }}_server"
+    act_gitea_host_port: 3000
+    act_gitea_host_protocol: http
+    act_gitea_become_user: gitea
+    act_gitea_bin: /usr/local/bin/gitea
+    act_gitea_config_path: /etc/gitea/gitea.ini
+    act_do_register: true
     debug: true
   pre_tasks:
     - name: Gather required subset of facts

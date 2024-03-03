@@ -5,54 +5,64 @@ dependency:
     requirements-file: requirements.yml
 platforms:
   - name: ubi8_runner
-    image: ubi8/ubi-init
-    pre_build_image: true
+    image: registry.access.redhat.com/ubi8/ubi-init
+    pre_built_image: true
+    cgroupns_mode: host
     groups:
       - runners
     volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
     privileged: true
     command: "/usr/sbin/init"
+    platform: linux/amd64
+    networks:
+      - name: "gitea"
   - name: ubi9_runner
-    image: ubi9/ubi-init
-    pre_build_image: true
+    image: registry.access.redhat.com/ubi9/ubi-init
+    pre_built_image: true
+    cgroupns_mode: host
     groups:
       - runners
     volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
     privileged: true
     command: "/usr/sbin/init"
+    platform: linux/amd64
+    networks:
+      - name: "gitea"
   - name: ubi8_server
-    image: ubi8/ubi-init
-    pre_build_image: true
-    published_ports:
-      - 3000/tcp
+    image: registry.access.redhat.com/ubi8/ubi-init
+    pre_built_image: true
+    cgroupns_mode: host
     groups:
       - servers
     volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+    published_ports:
+      - 3000/tcp
     privileged: true
     command: "/usr/sbin/init"
+    platform: linux/amd64
+    networks:
+      - name: "gitea"
   - name: ubi9_server
-    image: ubi9/ubi-init
-    pre_build_image: true
-    published_ports:
-      - 3000/tcp
+    image: registry.access.redhat.com/ubi9/ubi-init
+    pre_built_image: true
+    cgroupns_mode: host
     groups:
       - servers
     volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+    published_ports:
+      - 3000/tcp
     privileged: true
     command: "/usr/sbin/init"
+    platform: linux/amd64
+    networks:
+      - name: "gitea"
 provisioner:
   name: ansible
   env:
     ANSIBLE_ROLES_PATH: ../../roles
 verifier:
   name: ansible
-driver:
-  options:
-    managed: false
-    login_cmd_template: "podman exec -ti {instance} bash"
-    ansible_connection_options:
-      ansible_connection: podman

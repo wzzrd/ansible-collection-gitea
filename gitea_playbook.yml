@@ -1,0 +1,17 @@
+---
+# file: gitea_playbook.yml
+- name: Example playbook to setup a gitea instance
+  hosts: gitea.example.com
+  gather_facts: false
+  vars:
+    gitea_db_type: sqlite3
+    gitea_http_listen: "{{ ansible_facts.all_ipv4_addresses[0] }}"
+
+  pre_tasks:
+    ansible.builtin.setup:
+      gather_subset:
+        - '!all'
+        - default_ipv4
+
+  roles:
+    - role: wzzrd.gitea.gitea

@@ -50,20 +50,20 @@
 
 - name: Download and install new binary, if needed
   when: (detected_version is not defined) or
-        (act_version != detected_version[1:])
+        (act_runner_version != detected_version[1:])
   tags:
     - version
   block:
     - name: Get system architecture in supported format - amd64
       ansible.builtin.set_fact:
         act_architecture: amd64
-        act_artifact: "act_runner-{{ act_version }}-linux-amd64.xz"
+        act_artifact: "act_runner-{{ act_runner_version }}-linux-amd64.xz"
       when: ansible_architecture == "x86_64"
 
     - name: Get system architecture in supported format - arm64
       ansible.builtin.set_fact:
         act_architecture: arm64
-        act_artifact: "act_runner-{{ act_version }}-linux-arm64.xz"
+        act_artifact: "act_runner-{{ act_runner_version }}-linux-arm64.xz"
       when: ansible_architecture == "aarch64"
 
     - name: Show artifact
@@ -140,7 +140,7 @@
       - generate-config
   register: act_config_content
   when:
-    - act_config_content is not defined
+    - act_config_content is not defined or act_config_content == ''
 
 - name: Flatten act_config_content
   ansible.builtin.set_fact:
@@ -154,9 +154,9 @@
     owner: "{{ act_user }}"
     group: "{{ act_user_group }}"
     content: "{{ act_config_content }}"
+    force: false
   when:
-    - act_config_content is defined
-    - '"skipped" not in act_config_content'
+    - act_config_content is defined and act_config_content != ''
 
 - name: Register runner with gitea server
   when: act_do_register
@@ -164,42 +164,42 @@
     - name: Preflight checks for act registration
       ansible.builtin.assert:
         that:
-          - gitea_server is defined
-          - gitea_server_become_user is defined
-          - gitea_server_bin is defined
-          - gitea_server_config_path is defined
+          - act_gitea_host is defined
+          - act_gitea_become_user is defined
+          - act_gitea_bin is defined
+          - act_gitea_config_path is defined
 
     - name: Obtain registration token with project and / or owner scope
       ansible.builtin.command:
         argv:
-          - "{{ gitea_server_bin }}"
+          - "{{ act_gitea_bin }}"
           - actions
           - generate-runner-token
           - --config
-          - "{{ gitea_server_config_path }}"
+          - "{{ act_gitea_config_path }}"
           - --scope
           - "{{ act_scope }}"
       register: act_registration_token
       when: act_scope|length > 0
       changed_when: false
-      delegate_to: "{{ gitea_server }}"
+      delegate_to: "{{ act_gitea_host }}"
       become: true
-      become_user: "{{ gitea_server_become_user }}"
+      become_user: "{{ act_gitea_become_user }}"
 
     - name: Obtain global registration token (without project and / or owner scope)
       ansible.builtin.command:
         argv:
-          - "{{ gitea_server_bin }}"
+          - "{{ act_gitea_bin }}"
           - actions
           - generate-runner-token
           - --config
-          - "{{ gitea_server_config_path }}"
+          - "{{ act_gitea_config_path }}"
       register: act_registration_token
       when: act_scope|length == 0
       changed_when: false
-      delegate_to: "{{ gitea_server }}"
+      delegate_to: "{{ act_gitea_host }}"
       become: true
-      become_user: "{{ gitea_server_become_user }}"
+      become_user: "{{ act_gitea_become_user }}"
 
     # Should no longer be a problem with gitea 1.23 or so
     - name: Work around DISABLE_QUERY_AUTH_TOKEN bug
@@ -236,9 +236,15 @@
           - "{{ act_bin_dir }}/act_runner"
           - register
           - --instance
-          - "{{ gitea_server }}"
+          - "{{ act_gitea_host_protocol }}://\
+             {{ act_gitea_host }}:\
+             {{ act_gitea_host_port }}"
+          - --labels
+          - "{{ act_labels | join(',')}}"
           - --token
           - "{{ act_registration_token }}"
+          - --name
+          - "{{ ansible_hostname }}"
           - --no-interactive
       become: true
       become_user: "{{ act_user }}"

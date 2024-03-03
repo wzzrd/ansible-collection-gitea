@@ -11,11 +11,21 @@ act_bin_owner_group: root
 
 act_runner_version: "0.2.6"
 act_download_dir_url: "https://dl.gitea.com/act_runner/{{ act_runner_version }}"
+# An empty value for act_config_content will generate a default config.yaml
+act_config_content: ''
 
 act_gitea_config_path: /etc/gitea/gitea.ini
 act_do_register: false
+# For a scoped runner, enter owner/repo, for global runner leave as ''
 act_scope: ''
 
 act_gitea_host: gitea.example.com
+act_gitea_host_port: 443
+act_gitea_host_protocol: https
 act_gitea_become_user: root
 act_gitea_bin: /usr/local/bin/gitea
+
+act_labels:
+  - ubuntu-latest
+  - ubuntu-22.04
+  - ubuntu-20.04

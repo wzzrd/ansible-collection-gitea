@@ -1,11 +1,16 @@
 ---
 # file: act_runner_playbook.yml
-- name: Test act playbook
-  hosts: localhost
-  gather_facts: true
+- name: Example playbook to setup an act_runner instance
+  hosts: act_runner.example.com
+  gather_facts: false
+  vars:
+    act_gitea_host: gitea.example.com
+    act_do_register: true
 
-  tasks:
-    - name: Testing act role
-      ansible.builtin.include_role:
-        name: wzzrd.gitea.act
-        tasks_from: main.yml
+  pre_tasks:
+    ansible.builtin.setup:
+      gather_subset:
+        - '!all'
+
+  roles:
+    - role: wzzrd.gitea.act
