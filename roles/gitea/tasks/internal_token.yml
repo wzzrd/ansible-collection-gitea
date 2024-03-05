@@ -26,3 +26,13 @@
         mode: "0600"
         owner: "gitea"
         group: "gitea"
+
+- name: Create dictionary to hold internal_token uri
+  ansible.builtin.set_fact:
+    internal_token_dict:
+      security:
+        INTERNAL_TOKEN_URI: file:/etc/gitea/internal_token
+
+- name: Combine config dictionary with internal_token_dict
+  ansible.builtin.set_fact:
+    gitea_config_file: "{{ gitea_config_file | combine(internal_token_dict, recursive=true) }}"

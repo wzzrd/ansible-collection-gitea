@@ -60,6 +60,9 @@ The example below overrides the whole `gitea_config_file` dictionary. If you omi
 
 Therefore, most sites will want to provide the `gitea_config_file` directionary to the role.
 
+Mind that the SECRET_KEY_URI, INTERNAL_TOKEN_URI and JWT_SECRET_URI settings are
+automatically added to the `gitea_config_file` dictionary.
+
 ```yaml
 
 ---
