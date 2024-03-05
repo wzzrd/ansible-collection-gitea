@@ -1,0 +1,6 @@
+[allowlist]
+ description = "Global Allowlist"
+
+ regexes = [
+    '''gitea_gpg_key'''
+    ]
