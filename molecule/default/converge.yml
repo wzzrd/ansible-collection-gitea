@@ -12,8 +12,6 @@
 - name: Converge servers
   hosts: servers
   gather_facts: false
-  vars:
-    gitea_db_type: sqlite3
   pre_tasks:
     - name: Gather required subset of facts
       ansible.builtin.setup:
