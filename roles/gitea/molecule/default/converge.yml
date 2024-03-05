@@ -6,7 +6,7 @@
   # have python installed in order to avoid notable delays installing it.
   gather_facts: false
   vars:
-    gitea_arch: arm64
+    gitea_arch: amd64
     gitea_db_type: sqlite3
   pre_tasks:
     - name: Gather required subset of facts

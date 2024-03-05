@@ -1,0 +1,28 @@
+---
+- name: Create internal token file based on variable
+  ansible.builtin.copy:
+    dest: /etc/gitea/internal_token
+    content: "{{ gitea_internal_token }}"
+    mode: "0600"
+    owner: "{{ gitea_user }}"
+    group: "{{ gitea_group }}"
+  when: gitea_internal_token is defined
+
+- name: Create internal file based on gitea generate output
+  when: gitea_internal_token is undefined
+  block:
+    - name: Generate internal token with gitea generate secret INTERNAL_TOKEN
+      ansible.builtin.shell: |
+        cmd: |
+          set -o pipefail && \
+          /usr/local/bin/gitea generate secret INTERNAL_TOKEN \
+        > /etc/gitea/internal_token
+      args:
+        creates: /etc/gitea/internal_token
+
+    - name: Set permissions on internal token file
+      ansible.builtin.file:
+        path: /etc/gitea/internal_token
+        mode: "0600"
+        owner: "gitea"
+        group: "gitea"

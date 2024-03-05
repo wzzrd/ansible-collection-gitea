@@ -11,7 +11,7 @@
 
 - name: Converge servers
   hosts: servers
-  gather_facts: true
+  gather_facts: false
   vars:
     gitea_db_type: sqlite3
   pre_tasks:
@@ -24,7 +24,8 @@
   roles:
     - role: gitea
       vars:
-        gitea_http_listen: "{{ ansible_facts.all_ipv4_addresses[0] }}"
+        gitea_http_host: "{{ ansible_facts.all_ipv4_addresses[0] }}"
+        gitea_http_domain: "{{ ansible_hostname }}"
 
 - name: Converge
   hosts: runners
@@ -41,7 +42,6 @@
     act_gitea_bin: /usr/local/bin/gitea
     act_gitea_config_path: /etc/gitea/gitea.ini
     act_do_register: true
-    debug: true
   pre_tasks:
     - name: Gather required subset of facts
       ansible.builtin.setup:

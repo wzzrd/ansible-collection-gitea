@@ -8,9 +8,10 @@
     act_do_register: true
 
   pre_tasks:
-    ansible.builtin.setup:
-      gather_subset:
-        - '!all'
+    - name: Gather subset of facts
+      ansible.builtin.setup:
+        gather_subset:
+          - '!all'
 
   roles:
     - role: wzzrd.gitea.act

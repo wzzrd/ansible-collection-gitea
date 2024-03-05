@@ -240,7 +240,7 @@
              {{ act_gitea_host }}:\
              {{ act_gitea_host_port }}"
           - --labels
-          - "{{ act_labels | join(',')}}"
+          - "{{ act_labels | join(',') }}"
           - --token
           - "{{ act_registration_token }}"
           - --name
