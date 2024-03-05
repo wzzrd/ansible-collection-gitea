@@ -139,6 +139,12 @@ License
 
 BSD-3-Clause
 
+Acknowledgements
+----------------
+
+This role is partially based on the gitea role originally written by Thomas Maurice, to
+be found on [GitHub](https://github.com/thomas-maurice/ansible-role-gitea).
+
 Author Information
 ------------------
 
