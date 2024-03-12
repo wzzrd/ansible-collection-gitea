@@ -4,3 +4,7 @@
  regexes = [
     '''gitea_gpg_key'''
     ]
+
+  paths = [
+    '''README.md'''
+    ]
