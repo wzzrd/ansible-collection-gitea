@@ -12,13 +12,14 @@
   when: gitea_internal_token is undefined
   block:
     - name: Generate internal token with gitea generate secret INTERNAL_TOKEN
-      ansible.builtin.shell: |
+      ansible.builtin.shell:
         cmd: |
-          set -o pipefail && \
+          set -o pipefail
           /usr/local/bin/gitea generate secret INTERNAL_TOKEN \
-        > /etc/gitea/internal_token
-      args:
+          > /etc/gitea/internal_token
         creates: /etc/gitea/internal_token
+      args:
+        executable: /usr/bin/bash
 
     - name: Set permissions on internal token file
       ansible.builtin.file:
