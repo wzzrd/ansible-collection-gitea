@@ -24,6 +24,15 @@
     path: "{{ act_bin_dir }}/act_runner"
   register: act_stat
 
+- name: Deploy systemd service file
+  ansible.builtin.template:
+    src: "act_runner.service.j2"
+    dest: "/etc/systemd/system/act_runner.service"
+    mode: "0644"
+  notify:
+    - Reload systemd
+    - Restart act_runner
+
 - name: Check if act is already installed and get version if so
   when: act_stat.stat.exists
   tags:
@@ -249,11 +258,8 @@
       become: true
       become_user: "{{ act_user }}"
 
-- name: Deploy systemd service file
-  ansible.builtin.template:
-    src: "act_runner.service.j2"
-    dest: "/etc/systemd/system/act_runner.service"
-    mode: "0644"
-  notify:
-    - Reload systemd
-    - Restart act_runner
+    - name: Make sure act daemon is always running
+      ansible.builtin.service:
+        name: act_runner
+        enabled: true
+        state: started
