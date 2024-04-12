@@ -5,8 +5,8 @@ dependency:
     requirements-file: requirements.yml
 platforms:
   - name: ubi8
-    image: registry.access.redhat.com/ubi8/ubi-init:latest
-    pre_build_image: true
+    image: registry.access.redhat.com/ubi8/ubi-init
+    pre_built_image: true
     cgroupns_mode: host
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:rw
@@ -14,8 +14,8 @@ platforms:
     command: "/usr/sbin/init"
     platform: linux/amd64
   - name: ubi9
-    image: registry.access.redhat.com/ubi9/ubi-init:latest
-    pre_build_image: true
+    image: registry.access.redhat.com/ubi9/ubi-init
+    pre_built_image: true
     cgroupns_mode: host
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:rw
@@ -26,3 +26,15 @@ provisioner:
   name: ansible
 verifier:
   name: ansible
+scenario:
+  test_sequence:
+    - dependency                                                                                                      - cleanup
+    - destroy
+    - syntax
+    - create
+    - prepare
+    - converge
+    - side_effect
+    - verify
+    - cleanup
+    - destroy

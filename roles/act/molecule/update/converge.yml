@@ -1,0 +1,27 @@
+- name: Converge act_runner 0.2.6
+  hosts: all
+  gather_facts: false
+  vars:
+    act_runner_version: "0.2.6"
+  pre_tasks:
+    - name: Gather required subset of facts
+      ansible.builtin.setup:
+        gather_subset:
+          - '!all'
+
+  roles:
+    - role: act
+
+- name: Converge act_runner 0.2.10
+  hosts: all
+  gather_facts: false
+  vars:
+    act_runner_version: "0.2.10"
+  pre_tasks:
+    - name: Gather required subset of facts
+      ansible.builtin.setup:
+        gather_subset:
+          - '!all'
+
+  roles:
+    - role: act

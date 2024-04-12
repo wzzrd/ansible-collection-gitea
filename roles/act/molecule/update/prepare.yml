@@ -1,0 +1,8 @@
+- name: Prepare containers for molecule tests
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Install packages for during tests
+      ansible.builtin.package:
+        name: xz
+        state: present

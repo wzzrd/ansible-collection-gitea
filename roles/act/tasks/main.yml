@@ -60,6 +60,7 @@
 - name: Download and install new binary, if needed
   when: (detected_version is not defined) or
         (act_runner_version != detected_version[1:])
+  notify: Restart act_runner
   tags:
     - version
   block:
@@ -88,6 +89,7 @@
         dest: "{{ act_user_home }}/checksums.txt"
         owner: "{{ act_user }}"
         mode: "0640"
+        force: true
 
     - name: Get checksum for release from file
       block:
