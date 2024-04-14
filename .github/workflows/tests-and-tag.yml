@@ -26,6 +26,21 @@ jobs:
         env:
           ANSIBLE_FORCE_COLOR: '1'
 
+  molecule-act-update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: "${{ github.repository }}"
+      - name: Run molecule update tests for act role
+        uses: gofrolist/molecule-action@v2
+        with:
+          molecule_working_dir: ${{ github.repository }}/roles/act
+          molecule_args: --driver-name docker -s update
+        env:
+          ANSIBLE_FORCE_COLOR: '1'
+
   molecule-gitea-default:
     runs-on: ubuntu-latest
     steps:
@@ -75,6 +90,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - molecule-act-default
+      - molecule-act-update
       - molecule-gitea-default
       - molecule-gitea-update
       - molecule-gitea-and-act
