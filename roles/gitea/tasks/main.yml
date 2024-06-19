@@ -32,8 +32,8 @@
     state: directory
     owner: "{{ gitea_user }}"
     group: "{{ gitea_group }}"
-    mode: '0755'
-  with_items:
+    mode: "0755"
+  loop:
     - /etc/gitea
 
 - name: Create data directory
@@ -43,7 +43,7 @@
     owner: "{{ gitea_user }}"
     group: "{{ gitea_group }}"
     mode: "0750"
-  with_items:
+  loop:
     - "{{ gitea_home }}"
     - "{{ gitea_home }}/data"
     - "{{ gitea_home }}/custom"
@@ -79,9 +79,9 @@
     owner: "{{ gitea_user }}"
     group: "{{ gitea_group }}"
     mode: "0600"
-  notify: "Restart gitea"
+  notify: Restart gitea
 
-- name: "Service gitea"
+- name: Service gitea
   ansible.builtin.service:
     name: gitea
     state: started

@@ -1,10 +1,9 @@
 ---
 - name: Ensure installation of podman-docker
   ansible.builtin.dnf:
-    name: "{{ item }}"
+    name:
+      - podman-docker
     state: present
-  loop:
-    - podman-docker
   when: act_install_dependencies is true
 
 - name: Add group for act user
@@ -26,8 +25,8 @@
 
 - name: Deploy systemd service file
   ansible.builtin.template:
-    src: "act_runner.service.j2"
-    dest: "/etc/systemd/system/act_runner.service"
+    src: act_runner.service.j2
+    dest: /etc/systemd/system/act_runner.service
     mode: "0644"
   notify:
     - Reload systemd
@@ -58,8 +57,7 @@
         - debug
 
 - name: Download and install new binary, if needed
-  when: (detected_version is not defined) or
-        (act_runner_version != detected_version[1:])
+  when: (detected_version is not defined) or (act_runner_version != detected_version[1:])
   notify: Restart act_runner
   tags:
     - version
@@ -67,13 +65,13 @@
     - name: Get system architecture in supported format - amd64
       ansible.builtin.set_fact:
         act_architecture: amd64
-        act_artifact: "act_runner-{{ act_runner_version }}-linux-amd64.xz"
+        act_artifact: act_runner-{{ act_runner_version }}-linux-amd64.xz
       when: ansible_architecture == "x86_64"
 
     - name: Get system architecture in supported format - arm64
       ansible.builtin.set_fact:
         act_architecture: arm64
-        act_artifact: "act_runner-{{ act_runner_version }}-linux-arm64.xz"
+        act_artifact: act_runner-{{ act_runner_version }}-linux-arm64.xz
       when: ansible_architecture == "aarch64"
 
     - name: Show artifact
@@ -127,7 +125,7 @@
           - "{{ act_user_home }}/{{ act_artifact }}"
         creates: "{{ act_user_home }}/{{ act_artifact[:-3] }}"
 
-    - name: "Copy file to {{ act_bin_dir }}"
+    - name: Copy file to {{ act_bin_dir }}
       ansible.builtin.copy:
         src: "{{ act_user_home }}/{{ act_artifact[:-3] }}"
         dest: "{{ act_bin_dir }}/{{ act_artifact[:-3] }}"
@@ -140,7 +138,7 @@
       ansible.builtin.file:
         src: "{{ act_bin_dir }}/{{ act_artifact[:-3] }}"
         dest: "{{ act_bin_dir }}/act_runner"
-        state: "link"
+        state: link
 
 - name: Generate default act config file contents if it doesn't exist
   ansible.builtin.command:
@@ -247,9 +245,7 @@
           - "{{ act_bin_dir }}/act_runner"
           - register
           - --instance
-          - "{{ act_gitea_host_protocol }}://\
-             {{ act_gitea_host }}:\
-             {{ act_gitea_host_port }}"
+          - "{{ act_gitea_host_protocol }}://{{ act_gitea_host }}:{{ act_gitea_host_port }}"
           - --labels
           - "{{ act_labels | join(',') }}"
           - --token

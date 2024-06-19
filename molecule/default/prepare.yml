@@ -1,3 +1,4 @@
+---
 - name: Prepare servers for molecule tests
   hosts: servers:runners
   gather_facts: false
