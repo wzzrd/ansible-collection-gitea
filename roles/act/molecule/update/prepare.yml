@@ -1,3 +1,4 @@
+---
 - name: Prepare containers for molecule tests
   hosts: all
   gather_facts: false

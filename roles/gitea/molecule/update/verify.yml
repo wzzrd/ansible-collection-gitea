@@ -1,3 +1,4 @@
+---
 - name: Verify
   hosts: all
   # We disable gather facts because it would fail due to our container not

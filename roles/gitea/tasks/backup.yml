@@ -1,5 +1,5 @@
 ---
-- name: "Create backup directory"
+- name: Create backup directory
   ansible.builtin.file:
     path: "{{ gitea_backup_location }}"
     state: directory

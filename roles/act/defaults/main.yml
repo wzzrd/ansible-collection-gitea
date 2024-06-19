@@ -2,7 +2,7 @@
 act_install_dependencies: true
 act_user: act_runner
 act_user_group: act_runner
-act_user_additional_groups: ''
+act_user_additional_groups: ""
 act_user_home: /home/{{ act_user }}
 
 act_bin_dir: /usr/local/bin
@@ -10,14 +10,14 @@ act_bin_owner: root
 act_bin_owner_group: root
 
 act_runner_version: "0.2.6"
-act_download_dir_url: "https://dl.gitea.com/act_runner/{{ act_runner_version }}"
+act_download_dir_url: https://dl.gitea.com/act_runner/{{ act_runner_version }}
 # An empty value for act_config_content will generate a default config.yaml
-act_config_content: ''
+act_config_content: ""
 
 act_gitea_config_path: /etc/gitea/gitea.ini
 act_do_register: false
 # For a scoped runner, enter owner/repo, for global runner leave as ''
-act_scope: ''
+act_scope: ""
 
 act_gitea_host: gitea.example.com
 act_gitea_host_port: 443
