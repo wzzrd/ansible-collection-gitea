@@ -1,6 +1,6 @@
 {
   "name": "ansible-dev-container-codespaces",
-  "image": "ghcr.io/ansible/community-ansible-dev-tools:latest",
+  "image": "registry.redhat.io/ansible-automation-platform-25/ansible-dev-tools-rhel8:latest",
   "containerUser": "root",
   "runArgs": [
     "--security-opt",
