@@ -4,7 +4,8 @@ metadata:
 components:
   - name: tooling-container
     container:
-      image: ghcr.io/ansible/ansible-devspaces:latest
+      #image: ghcr.io/ansible/ansible-devspaces:latest
+      image: registry.redhat.io/ansible-automation-platform-25/ansible-dev-tools-rhel8:latest
       memoryRequest: 256M
       memoryLimit: 6Gi
       cpuRequest: 250m
@@ -13,3 +14,5 @@ components:
       env:
         - name: KUBEDOCK_ENABLED
           value: "true"
+
+
