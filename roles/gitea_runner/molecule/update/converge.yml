@@ -1,0 +1,27 @@
+- name: Converge gitea-runner 1.0.4
+  hosts: all
+  gather_facts: false
+  vars:
+    gitea_runner_version: "1.0.4"
+  pre_tasks:
+    - name: Gather required subset of facts
+      ansible.builtin.setup:
+        gather_subset:
+          - '!all'
+
+  roles:
+    - role: gitea_runner
+
+- name: Converge gitea-runner 1.0.6
+  hosts: all
+  gather_facts: false
+  vars:
+    gitea_runner_version: "1.0.6"
+  pre_tasks:
+    - name: Gather required subset of facts
+      ansible.builtin.setup:
+        gather_subset:
+          - '!all'
+
+  roles:
+    - role: gitea_runner

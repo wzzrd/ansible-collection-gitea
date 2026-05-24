@@ -1,0 +1,31 @@
+---
+gitea_runner_install_dependencies: true
+gitea_runner_user: gitea_runner
+gitea_runner_user_group: gitea_runner
+gitea_runner_user_additional_groups: ''
+gitea_runner_user_home: /home/{{ gitea_runner_user }}
+
+gitea_runner_bin_dir: /usr/local/bin
+gitea_runner_bin_owner: root
+gitea_runner_bin_owner_group: root
+
+gitea_runner_version: "1.0.6"
+gitea_runner_download_url: "https://gitea.com/gitea/runner/releases/download/v{{ gitea_runner_version }}"
+# An empty value for gitea_runner_config_content will generate a default config.yaml
+gitea_runner_config_content: ''
+
+gitea_runner_gitea_config_path: /etc/gitea/gitea.ini
+gitea_runner_do_register: false
+# For a scoped runner, enter owner/repo, for global runner leave as ''
+gitea_runner_scope: ''
+
+gitea_runner_gitea_host: gitea.example.com
+gitea_runner_gitea_host_port: 443
+gitea_runner_gitea_host_protocol: https
+gitea_runner_gitea_become_user: root
+gitea_runner_gitea_bin: /usr/local/bin/gitea
+
+gitea_runner_labels:
+  - ubuntu-latest
+  - ubuntu-22.04
+  - ubuntu-20.04

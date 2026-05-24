@@ -1,0 +1,18 @@
+[Unit]
+Description=Gitea runner daemon
+After=network.target
+Requires=network-online.target
+StartLimitIntervalSec=60
+
+[Service]
+User={{ gitea_runner_user }}
+Group={{ gitea_runner_user_group }}
+Environment=HOME={{ gitea_runner_user_home }}
+WorkingDirectory={{ gitea_runner_user_home }}
+Type=simple
+ExecStart={{ gitea_runner_bin_dir }}/gitea-runner daemon -c {{ gitea_runner_user_home }}/config.yaml
+Restart=on-failure
+StartLimitBurst=3
+
+[Install]
+WantedBy=multi-user.target
