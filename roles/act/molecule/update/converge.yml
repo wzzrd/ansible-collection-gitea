@@ -1,3 +1,4 @@
+---
 - name: Converge act_runner 0.2.6
   hosts: all
   gather_facts: false
@@ -7,7 +8,7 @@
     - name: Gather required subset of facts
       ansible.builtin.setup:
         gather_subset:
-          - '!all'
+          - "!all"
 
   roles:
     - role: act
@@ -21,7 +22,7 @@
     - name: Gather required subset of facts
       ansible.builtin.setup:
         gather_subset:
-          - '!all'
+          - "!all"
 
   roles:
     - role: act

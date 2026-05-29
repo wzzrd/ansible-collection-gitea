@@ -11,7 +11,7 @@ platforms:
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:rw
     privileged: true
-    command: "/usr/sbin/init"
+    command: /usr/sbin/init
     platform: linux/amd64
   - name: ubi9
     image: registry.access.redhat.com/ubi9/ubi-init:latest
@@ -20,7 +20,7 @@ platforms:
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:rw
     privileged: true
-    command: "/usr/sbin/init"
+    command: /usr/sbin/init
     platform: linux/amd64
 provisioner:
   name: ansible

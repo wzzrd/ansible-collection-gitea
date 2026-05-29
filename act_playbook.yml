@@ -11,7 +11,7 @@
     - name: Gather subset of facts
       ansible.builtin.setup:
         gather_subset:
-          - '!all'
+          - "!all"
 
   roles:
     - role: wzzrd.gitea.act

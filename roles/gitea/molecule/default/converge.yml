@@ -1,3 +1,4 @@
+---
 - name: Converge gitea server
   hosts: all
   # We disable gather facts because it would fail due to our container not
@@ -10,7 +11,7 @@
     - name: Gather required subset of facts
       ansible.builtin.setup:
         gather_subset:
-          - '!all'
+          - "!all"
           - default_ipv4
 
   roles:

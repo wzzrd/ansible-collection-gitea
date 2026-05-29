@@ -1,3 +1,4 @@
+---
 - name: Fail if runner or server groups are missing
   hosts: localhost
   tasks:
@@ -16,7 +17,7 @@
     - name: Gather required subset of facts
       ansible.builtin.setup:
         gather_subset:
-          - '!all'
+          - "!all"
           - default_ipv4
 
   roles:
@@ -44,6 +45,6 @@
     - name: Gather required subset of facts
       ansible.builtin.setup:
         gather_subset:
-          - '!all'
+          - "!all"
   roles:
     - role: act

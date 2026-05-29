@@ -1,14 +1,15 @@
+---
 - name: Converge gitea server on 1.21.5
   hosts: all
   gather_facts: false
   vars:
-    gitea_version: "1.21.5"
+    gitea_version: 1.21.5
     gitea_do_backup: true
   pre_tasks:
     - name: Gather required subset of facts
       ansible.builtin.setup:
         gather_subset:
-          - '!all'
+          - "!all"
           - default_ipv4
 
   roles:
@@ -18,13 +19,13 @@
   hosts: all
   gather_facts: false
   vars:
-    gitea_version: "1.21.7"
+    gitea_version: 1.21.7
     gitea_do_backup: true
   pre_tasks:
     - name: Gather required subset of facts
       ansible.builtin.setup:
         gather_subset:
-          - '!all'
+          - "!all"
           - default_ipv4
 
   roles:

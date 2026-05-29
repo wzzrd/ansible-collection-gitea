@@ -13,10 +13,10 @@ platforms:
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:rw
     privileged: true
-    command: "/usr/sbin/init"
+    command: /usr/sbin/init
     platform: linux/amd64
     networks:
-      - name: "gitea"
+      - name: gitea
   - name: ubi9_runner
     image: registry.access.redhat.com/ubi9/ubi-init
     pre_built_image: true
@@ -26,10 +26,10 @@ platforms:
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:rw
     privileged: true
-    command: "/usr/sbin/init"
+    command: /usr/sbin/init
     platform: linux/amd64
     networks:
-      - name: "gitea"
+      - name: gitea
   - name: ubi8_server
     image: registry.access.redhat.com/ubi8/ubi-init
     pre_built_image: true
@@ -41,10 +41,10 @@ platforms:
     published_ports:
       - 3000/tcp
     privileged: true
-    command: "/usr/sbin/init"
+    command: /usr/sbin/init
     platform: linux/amd64
     networks:
-      - name: "gitea"
+      - name: gitea
   - name: ubi9_server
     image: registry.access.redhat.com/ubi9/ubi-init
     pre_built_image: true
@@ -56,10 +56,10 @@ platforms:
     published_ports:
       - 3000/tcp
     privileged: true
-    command: "/usr/sbin/init"
+    command: /usr/sbin/init
     platform: linux/amd64
     networks:
-      - name: "gitea"
+      - name: gitea
 provisioner:
   name: ansible
   env:
