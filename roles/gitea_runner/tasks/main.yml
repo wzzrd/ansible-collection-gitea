@@ -19,6 +19,83 @@
     home: "{{ gitea_runner_user_home }}"
     create_home: true
 
+# The daemon resolves its labels as --labels > runner.labels in config.yaml >
+# the labels in the .runner file, and declares whatever it resolves to the
+# Gitea server on every start. Putting the labels on the daemon command line is
+# therefore the one place from which the role can both set them at registration
+# time and change them afterwards.
+- name: Determine the labels the gitea-runner daemon should run with
+  tags:
+    - labels
+  block:
+    - name: Preflight check for the requested label state
+      ansible.builtin.assert:
+        that:
+          - gitea_runner_labels_state in ['exact', 'merged']
+        fail_msg: "gitea_runner_labels_state must be either 'exact' or 'merged'"
+
+    - name: Use the requested labels verbatim
+      ansible.builtin.set_fact:
+        gitea_runner_effective_labels: "{{ gitea_runner_labels }}"
+      when: gitea_runner_labels_state == 'exact'
+
+    - name: Merge the requested label changes into the labels of the runner
+      when: gitea_runner_labels_state == 'merged'
+      block:
+        - name: Check for an existing runner registration file
+          ansible.builtin.stat:
+            path: "{{ gitea_runner_user_home }}/.runner"
+          register: gitea_runner_registration_stat
+
+        - name: Read the existing runner registration file
+          ansible.builtin.slurp:
+            src: "{{ gitea_runner_user_home }}/.runner"
+          register: gitea_runner_registration_raw
+          when: gitea_runner_registration_stat.stat.exists
+
+        # A runner that is not registered yet has no labels of its own, so for
+        # that one the labels in gitea_runner_labels are the starting point.
+        - name: Start from the labels in gitea_runner_labels
+          ansible.builtin.set_fact:
+            gitea_runner_current_labels: "{{ gitea_runner_labels }}"
+
+        - name: Start from the labels the runner already has
+          ansible.builtin.set_fact:
+            gitea_runner_current_labels: "{{ gitea_runner_registration.labels }}"
+          vars:
+            gitea_runner_registration: "{{ gitea_runner_registration_raw.content | b64decode | from_json }}"
+          when:
+            - gitea_runner_registration_raw.content is defined
+            - gitea_runner_registration.labels | default([], true) | length > 0
+
+        # Labels are matched on their name, the part before the first colon, so
+        # that adding a label that already exists repoints it at another image
+        # instead of ending up with the same name twice.
+        - name: Determine which label names are replaced or removed
+          ansible.builtin.set_fact:
+            gitea_runner_dropped_label_names: "{{ (gitea_runner_labels_add + gitea_runner_labels_remove) | map('regex_replace', ':.*$', '') | list }}"
+
+        - name: Reset the list of labels to keep
+          ansible.builtin.set_fact:
+            gitea_runner_kept_labels: []
+
+        - name: Keep the current labels that are not replaced or removed
+          ansible.builtin.set_fact:
+            gitea_runner_kept_labels: "{{ gitea_runner_kept_labels + [item] }}"
+          loop: "{{ gitea_runner_current_labels }}"
+          when: (item | regex_replace(':.*$', '')) not in gitea_runner_dropped_label_names
+
+        - name: Add the requested labels to the labels that were kept
+          ansible.builtin.set_fact:
+            gitea_runner_effective_labels: "{{ gitea_runner_kept_labels + gitea_runner_labels_add }}"
+
+    - name: Show the labels the daemon will run with
+      ansible.builtin.debug:
+        msg: "{{ gitea_runner_effective_labels }}"
+      when:
+        - debug is defined
+        - debug
+
 - name: Check if gitea-runner is installed already
   ansible.builtin.stat:
     path: "{{ gitea_runner_bin_dir }}/gitea-runner"
@@ -107,6 +184,9 @@
         - debug is defined
         - debug
 
+    # unxz -k below keeps the archive on disk, so this task can compare its
+    # checksum on the next run and skip the download entirely. That is what
+    # keeps a fixed-name channel such as nightly idempotent.
     - name: Download requested release
       ansible.builtin.get_url:
         url: "{{ gitea_runner_download_url }}/{{ gitea_runner_artifact }}"
@@ -115,14 +195,20 @@
         owner: "{{ gitea_runner_user }}"
         mode: "0750"
 
+    # Deliberately unguarded: on a moving channel the artifact filename never
+    # changes, so a creates: guard would skip decompression and leave the
+    # previously installed build in place while reporting success. Decompressing
+    # into the runner home changes nothing on the system, so the copy task below
+    # is what reports the change and triggers the restart.
     - name: Unarchive release
       ansible.builtin.command:
         argv:
           - /usr/bin/unxz
           - -d
           - -f
+          - -k
           - "{{ gitea_runner_user_home }}/{{ gitea_runner_artifact }}"
-        creates: "{{ gitea_runner_user_home }}/{{ gitea_runner_artifact[:-3] }}"
+      changed_when: false
 
     - name: "Copy file to {{ gitea_runner_bin_dir }}"
       ansible.builtin.copy:
@@ -176,6 +262,7 @@
           - gitea_runner_gitea_become_user is defined
           - gitea_runner_gitea_bin is defined
           - gitea_runner_gitea_config_path is defined
+          - gitea_runner_effective_labels | length > 0
 
     - name: Obtain registration token with project and / or owner scope
       ansible.builtin.shell:
@@ -236,7 +323,7 @@
              {{ gitea_runner_gitea_host }}:\
              {{ gitea_runner_gitea_host_port }}"
           - --labels
-          - "{{ gitea_runner_labels | join(',') }}"
+          - "{{ gitea_runner_effective_labels | join(',') }}"
           - --token
           - "{{ gitea_runner_registration_token }}"
           - --name

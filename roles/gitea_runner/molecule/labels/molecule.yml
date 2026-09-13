@@ -1,0 +1,44 @@
+---
+dependency:
+  name: galaxy
+  options:
+    requirements-file: requirements.yml
+platforms:
+  - name: ubi8
+    image: registry.access.redhat.com/ubi8/ubi-init:latest
+    pre_build_image: true
+    cgroupns_mode: host
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+    privileged: true
+    command: "/usr/sbin/init"
+    platform: linux/amd64
+  - name: ubi9
+    image: registry.access.redhat.com/ubi9/ubi-init:latest
+    pre_build_image: true
+    cgroupns_mode: host
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+    privileged: true
+    command: "/usr/sbin/init"
+    platform: linux/amd64
+provisioner:
+  name: ansible
+verifier:
+  name: ansible
+scenario:
+  # The two converge plays deliberately leave the runner with a different set
+  # of labels than the first play handed it, so converging twice is not a
+  # no-op and idempotence is not part of this scenario.
+  test_sequence:
+    - dependency
+    - cleanup
+    - destroy
+    - syntax
+    - create
+    - prepare
+    - converge
+    - side_effect
+    - verify
+    - cleanup
+    - destroy

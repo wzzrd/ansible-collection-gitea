@@ -1,9 +1,12 @@
 ---
+# Reloading comes first on purpose: handlers run in the order they are defined
+# here, and systemd would otherwise restart gitea_runner from the unit file it
+# still has cached, silently ignoring the unit file the role just wrote.
+- name: "Reload systemd"
+  ansible.builtin.systemd:
+    daemon_reload: true
+
 - name: "Restart gitea_runner"
   ansible.builtin.service:
     name: gitea_runner
     state: restarted
-
-- name: "Reload systemd"
-  ansible.builtin.systemd:
-    daemon_reload: true

@@ -32,7 +32,10 @@ Role Variables
 | gitea_runner_gitea_host_protocol | https | Connection protocol to the Gitea instance | false |
 | gitea_runner_gitea_become_user | root | User to become *on the Gitea server* during auto-registration token generation | false |
 | gitea_runner_gitea_bin | /usr/local/bin/gitea | Location of the gitea binary on the Gitea instance | false |
-| gitea_runner_labels | ['ubuntu-latest', 'ubuntu-22.04', 'ubuntu-20.04'] | Labels to attach to this runner during auto-registration | false |
+| gitea_runner_labels | ['ubuntu-latest', 'ubuntu-22.04', 'ubuntu-20.04'] | Labels this runner should have, see below | false |
+| gitea_runner_labels_state | exact | Whether `gitea_runner_labels` replaces the labels of the runner (`exact`) or is merged into them (`merged`), see below | false |
+| gitea_runner_labels_add | [] | Labels to add to the existing labels, only used when `gitea_runner_labels_state` is `merged` | false |
+| gitea_runner_labels_remove | [] | Labels to remove from the existing labels, only used when `gitea_runner_labels_state` is `merged` | false |
 
 Runner scoping
 --------------
@@ -42,6 +45,41 @@ By default, the `gitea_runner_scope` variable is set to '' (an empty string). Th
 This might not be what you want. It is also possible to limit availability of the runner to a single repository on the Gitea instance, or to an organization.
 
 You can achieve this by setting the `gitea_runner_scope` variable to 'owner/repo' for a repository scoped runner, or to `organization` or `user` for an organization / user scoped runner.
+
+Runner labels
+-------------
+
+Labels decide which jobs a runner accepts. They take the form `name[:schema[:args]]`, where the schema is either `docker://<image>` to run jobs in a container from that image, or `host` to run them directly on the runner machine. A label without a schema uses `host`.
+
+The role passes the labels to the `gitea-runner daemon` command in the systemd unit file, which is the highest precedence source the runner knows (`--labels` beats `runner.labels` in `config.yaml`, which in turn beats the labels in the `.runner` file). The runner declares them to the Gitea server every time it starts, so labels can be changed at any point after registration: change the variables, run the role, and the unit file is rewritten and the runner restarted.
+
+Note that this also means labels edited through the Gitea web interface are overwritten the next time the runner restarts.
+
+### Setting the labels
+
+By default, `gitea_runner_labels_state` is `exact`, and the runner ends up with exactly the labels listed in `gitea_runner_labels`:
+
+```yaml
+gitea_runner_labels:
+  - ubuntu-latest:docker://docker.gitea.com/runner-images:ubuntu-latest
+  - self-hosted:host
+```
+
+### Adding and removing labels
+
+With `gitea_runner_labels_state` set to `merged`, the labels the runner already has are the starting point, and only the labels in `gitea_runner_labels_add` and `gitea_runner_labels_remove` are applied to them:
+
+```yaml
+gitea_runner_labels_state: merged
+gitea_runner_labels_add:
+  - gpu:docker://registry.example.com/gpu-runner:latest
+gitea_runner_labels_remove:
+  - ubuntu-20.04
+```
+
+Labels are matched on their name, the part before the first colon, so adding a label that already exists repoints it at another image rather than adding a second label of the same name. Removing a label works on the name as well, so `ubuntu-20.04` removes it whatever image it points at.
+
+Two things to keep in mind about `merged`. The labels of a runner are read from its `.runner` file, so a runner that is not registered yet has no labels of its own and starts from `gitea_runner_labels` instead. And because the run only ever applies a difference, hosts that have drifted apart stay drifted apart: only `exact` makes every runner converge on the same set.
 
 Dependencies
 ------------

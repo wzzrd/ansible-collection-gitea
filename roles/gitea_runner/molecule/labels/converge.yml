@@ -1,0 +1,49 @@
+- name: Converge with an exact set of labels
+  hosts: all
+  gather_facts: false
+  vars:
+    gitea_runner_labels:
+      - ubuntu-latest
+      - ubuntu-22.04
+      - self-hosted:host
+  pre_tasks:
+    - name: Gather required subset of facts
+      ansible.builtin.setup:
+        gather_subset:
+          - '!all'
+
+  roles:
+    - role: gitea_runner
+
+- name: Converge with a merged set of labels
+  hosts: all
+  gather_facts: false
+  vars:
+    gitea_runner_labels_state: merged
+    gitea_runner_labels_add:
+      - gpu:docker://registry.example.com/gpu-runner:latest
+      - ubuntu-22.04:docker://docker.gitea.com/runner-images:ubuntu-22.04
+    gitea_runner_labels_remove:
+      - ubuntu-latest
+  pre_tasks:
+    - name: Gather required subset of facts
+      ansible.builtin.setup:
+        gather_subset:
+          - '!all'
+
+    # The runner is never registered during these tests, so stand in for the
+    # registration file the daemon writes for itself, holding the labels the
+    # first converge handed it.
+    - name: Fake the registration file the daemon would have written
+      ansible.builtin.copy:
+        dest: /home/gitea_runner/.runner
+        owner: gitea_runner
+        group: gitea_runner
+        mode: "0600"
+        content: |
+          {
+            "labels": ["ubuntu-latest", "ubuntu-22.04", "self-hosted:host"]
+          }
+
+  roles:
+    - role: gitea_runner

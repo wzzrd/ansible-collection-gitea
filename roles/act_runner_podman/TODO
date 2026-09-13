@@ -1,0 +1,14 @@
+- podman must be installed
+- podman-docker must be installed
+- need to generate systemd unit file => TEMPLATE
+    - container can run rootfull or rootless
+    - generate config if does not exist
+    - container needs to mount config
+    - container needs to mount data directory
+    - container needs name
+    - container needs token
+    - container needs labels
+    - need to mount podman.sock as docker.sock
+    - autoupdate is configurable
+    - container runs with specific tag or "latest" by default
+    - container is privileged

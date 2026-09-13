@@ -1,0 +1,21 @@
+- name: Verify
+  hosts: all
+  gather_facts: false
+  vars:
+    # ubuntu-latest was removed, ubuntu-22.04 was repointed at an image by the
+    # label of the same name, and self-hosted:host was left untouched.
+    gitea_runner_expected_labels: >-
+      self-hosted:host,gpu:docker://registry.example.com/gpu-runner:latest,ubuntu-22.04:docker://docker.gitea.com/runner-images:ubuntu-22.04
+
+  tasks:
+    - name: Check if the merged labels ended up on the daemon command line
+      block:
+        - name: Read the gitea_runner systemd unit file
+          ansible.builtin.slurp:
+            src: /etc/systemd/system/gitea_runner.service
+          register: gitea_runner_unit_file
+
+        - name: Verify result of previous task
+          ansible.builtin.assert:
+            that:
+              - "'--labels ' ~ gitea_runner_expected_labels in gitea_runner_unit_file.content | b64decode"

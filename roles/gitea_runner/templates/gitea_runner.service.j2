@@ -10,7 +10,8 @@ Group={{ gitea_runner_user_group }}
 Environment=HOME={{ gitea_runner_user_home }}
 WorkingDirectory={{ gitea_runner_user_home }}
 Type=simple
-ExecStart={{ gitea_runner_bin_dir }}/gitea-runner daemon -c {{ gitea_runner_user_home }}/config.yaml
+{% set gitea_runner_labels_argument = (' --labels ' ~ (gitea_runner_effective_labels | join(','))) if (gitea_runner_effective_labels | length > 0) else '' %}
+ExecStart={{ gitea_runner_bin_dir }}/gitea-runner daemon -c {{ gitea_runner_user_home }}/config.yaml{{ gitea_runner_labels_argument }}
 Restart=on-failure
 StartLimitBurst=3
 

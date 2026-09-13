@@ -11,6 +11,13 @@ gitea_runner_bin_owner_group: root
 
 gitea_runner_version: "1.0.6"
 gitea_runner_download_url: "https://gitea.com/gitea/runner/releases/download/v{{ gitea_runner_version }}"
+# To track the nightly channel instead of a tagged release, set:
+#   gitea_runner_version: "nightly"
+#   gitea_runner_download_url: "https://dl.gitea.com/gitea-runner/nightly"
+# The artifact name derives correctly from the version either way. Note that a
+# nightly binary reports a git-describe version (v3.3.0-9-g0712b2a7), which
+# never equals "nightly", so the update block below is evaluated on every run --
+# that is intended for a moving channel, and the download tasks stay idempotent.
 # An empty value for gitea_runner_config_content will generate a default config.yaml
 gitea_runner_config_content: ''
 
@@ -29,3 +36,13 @@ gitea_runner_labels:
   - ubuntu-latest
   - ubuntu-22.04
   - ubuntu-20.04
+
+# How gitea_runner_labels is applied to a runner that is already registered:
+#   exact  - the runner ends up with exactly the labels in gitea_runner_labels
+#   merged - the labels the runner already has are the starting point, and
+#            gitea_runner_labels_add / gitea_runner_labels_remove are applied
+#            to them. gitea_runner_labels is only used for a runner that has
+#            no labels of its own yet.
+gitea_runner_labels_state: exact
+gitea_runner_labels_add: []
+gitea_runner_labels_remove: []
